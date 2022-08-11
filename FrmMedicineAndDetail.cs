@@ -105,7 +105,6 @@ namespace PharmacyAutomation
             txtCountry.Text = dataGridView1.Rows[secilen].Cells[5].Value.ToString();
             txtPurchasePrice.Text = dataGridView1.Rows[secilen].Cells[6].Value.ToString();
             txtSalePrice.Text = dataGridView1.Rows[secilen].Cells[7].Value.ToString();
-            MessageBox.Show(dataGridView1.Rows[secilen].Cells[9].Value.ToString());
             if (Convert.ToBoolean(dataGridView1.Rows[secilen].Cells[9].Value.ToString()))
             {
                 rdbActive.Checked = true;
