@@ -16,7 +16,7 @@ namespace PharmacyAutomation
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrmSellerDashboard());
+            Application.Run(new FrmLogin());
         }
     }
 }

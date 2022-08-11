@@ -105,7 +105,8 @@ namespace PharmacyAutomation
             txtCountry.Text = dataGridView1.Rows[secilen].Cells[5].Value.ToString();
             txtPurchasePrice.Text = dataGridView1.Rows[secilen].Cells[6].Value.ToString();
             txtSalePrice.Text = dataGridView1.Rows[secilen].Cells[7].Value.ToString();
-            if (Convert.ToBoolean(dataGridView1.Rows[secilen].Cells[9].Value.ToString()) == true)
+            MessageBox.Show(dataGridView1.Rows[secilen].Cells[9].Value.ToString());
+            if (Convert.ToBoolean(dataGridView1.Rows[secilen].Cells[9].Value.ToString()))
             {
                 rdbActive.Checked = true;
             }
@@ -131,7 +132,7 @@ namespace PharmacyAutomation
             {
                 SqlCommand command =
                     new SqlCommand(
-                        "Select * From TblMedicine where MedicineName Like '" + txtSearchMedicine.Text + "%'",
+                        "Select MedicineID,MedicineName,Quantity,Stock,ConsumptionDate,Country,PurchasePrice,SalePrice,CategoryName,TblMedicine.Situation from TblMedicine inner join TblMedicineCategory on TblMedicine.CategoryID=TblMedicineCategory.CategoryID where TblMedicine.Situation=1 and MedicineName Like '" + txtSearchMedicine.Text + "%'",
                         connection);
                 SqlDataAdapter adapter = new SqlDataAdapter(command);
                 DataTable dataTable = new DataTable();
