@@ -21,8 +21,6 @@ namespace PharmacyAutomation
         public string username;
         public string personID;
         SqlConnection connection = new SqlConnection("Data Source=DESKTOP-2H5V0KB\\SQLEXPRESS;Initial Catalog=DbPharmacy;Integrated Security=True");
-
-
         static string myApi = "2cd512a81a207c80a98260dea6a3d0e9";
         private static string city = "istanbul";
         static string conc =
@@ -57,7 +55,6 @@ namespace PharmacyAutomation
             lblCity.Text = city.ToUpper();
             lblUserName.Text = username;
             MedicineList();
-
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -113,7 +110,7 @@ namespace PharmacyAutomation
 
         private void txtSearchMedicine_TextChanged(object sender, EventArgs e)
         {
-            if (txtSearchMedicine.Text.ToString() != "" && txtSearchMedicine.Text.ToString() != "İlaç ismi giriniz...")
+            if (txtSearchMedicine.Text != "" && txtSearchMedicine.Text != "İlaç ismi giriniz...")
             {
                 SqlCommand command =
                     new SqlCommand(
@@ -146,6 +143,8 @@ namespace PharmacyAutomation
         }
         double total = 0;
         private Dictionary<string, string> medicineIDsAndCount = new Dictionary<string, string>();
+        private int stock = 0;
+        private int stock1 = 0;
         public void copyData()
         {
             foreach (DataGridViewRow drv in dataGridView1.Rows)
@@ -162,17 +161,56 @@ namespace PharmacyAutomation
                     dataGridView2.Rows[n].Cells[2].Value = drv.Cells[3].Value.ToString();
                     dataGridView2.Rows[n].Cells[3].Value = drv.Cells[6].Value.ToString();
                     dataGridView2.Rows[n].Cells[4].Value = txtMedicinePiece.Text;
-                    total += Convert.ToDouble(drv.Cells[6].Value.ToString()) * Int32.Parse(txtMedicinePiece.Text);
-                    lblTotal.Text = total.ToString();
                     int secilen = dataGridView2.SelectedCells[0].RowIndex;
                     if (medicineIDsAndCount.ContainsKey(drv.Cells[1].Value.ToString()))
                     {
-                        MessageBox.Show(medicineIDsAndCount[dataGridView2.Rows[secilen].Cells[0].Value.ToString()]);
-                        medicineIDsAndCount[drv.Cells[1].Value.ToString()] = (Int32.Parse(medicineIDsAndCount[drv.Cells[1].Value.ToString()]) + Int32.Parse(txtMedicinePiece.Text)).ToString();
+                        
+                        stock1 = int.Parse(medicineIDsAndCount[drv.Cells[1].Value.ToString()]);
+                        stock1 += Int32.Parse(txtMedicinePiece.Text);
+                        connection.Open();
+                        SqlCommand command2 = new SqlCommand("select Stock from TblMedicine where MedicineID=@p1", connection);
+                        command2.Parameters.AddWithValue("@p1", drv.Cells[1].Value.ToString());
+                        SqlDataReader reader = command2.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            stock = int.Parse(reader[0].ToString());
+                        }
+                        connection.Close();
+                        if (stock1 > stock)
+                        {
+                            MessageBox.Show("Yeteri kadar ilaç sayısı depoda yok, ilaçtan " + stock + " adet kaldı", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            dataGridView2.Rows.RemoveAt(n);
+                        }
+                        else
+                        {
+                            total += Convert.ToDouble(drv.Cells[6].Value.ToString()) * Int32.Parse(txtMedicinePiece.Text);
+                            lblTotal.Text = total.ToString();
+                            medicineIDsAndCount[drv.Cells[1].Value.ToString()] = (Int32.Parse(medicineIDsAndCount[drv.Cells[1].Value.ToString()]) + Int32.Parse(txtMedicinePiece.Text)).ToString();
+                            stock1 = 0;
+                        }
                     }
                     else
                     {
-                        medicineIDsAndCount.Add(drv.Cells[1].Value.ToString(), txtMedicinePiece.Text);
+                        connection.Open();
+                        SqlCommand command2 = new SqlCommand("select Stock from TblMedicine where MedicineID=@p1", connection);
+                        command2.Parameters.AddWithValue("@p1", drv.Cells[1].Value.ToString());
+                        SqlDataReader reader = command2.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            stock = int.Parse(reader[0].ToString());
+                        }
+                        connection.Close();
+                        if (int.Parse(txtMedicinePiece.Text) > stock)
+                        {
+                            dataGridView2.Rows.RemoveAt(n);
+                            MessageBox.Show("Yeteri kadar ilaç sayısı depoda yok, ilaçtan " + stock + " adet kaldı", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                        else
+                        {
+                            total += Convert.ToDouble(drv.Cells[6].Value.ToString()) * Int32.Parse(txtMedicinePiece.Text);
+                            lblTotal.Text = total.ToString();
+                            medicineIDsAndCount.Add(drv.Cells[1].Value.ToString(), txtMedicinePiece.Text);
+                        }
                     }
                     drv.Cells[0].Value = false;
                     txtMedicinePiece.Text = "";
@@ -220,6 +258,12 @@ namespace PharmacyAutomation
                 command.Parameters.AddWithValue("@p3", m.Value);
                 command.ExecuteNonQuery();
                 connection.Close();
+                connection.Open();
+                SqlCommand command1 = new SqlCommand("Update TblMedicine set Stock=Stock-@p2 where MedicineID=@p1", connection);
+                command1.Parameters.AddWithValue("@p1", m.Key);
+                command1.Parameters.AddWithValue("@p2", m.Value);
+                command1.ExecuteNonQuery();
+                connection.Close();
             }
             MessageBox.Show("Satış başarıyla gerçekleştirildi");
             medicineIDsAndCount.Clear();
@@ -249,6 +293,7 @@ namespace PharmacyAutomation
             txtPaidMoney.Text = "0";
             lblReturnMoney.Text = "0";
             dataGridView2.Rows.Clear();
+            MedicineList();
         }
 
         private void lblTotal_TextChanged(object sender, EventArgs e)

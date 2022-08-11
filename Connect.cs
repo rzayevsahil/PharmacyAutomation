@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PharmacyAutomation
 {
-    internal class Connect
+    public static class Connect
     {
         public static SqlConnection connection = new SqlConnection("Data Source=DESKTOP-2H5V0KB\\SQLEXPRESS;Initial Catalog=DbPharmacy;Integrated Security=True");
         public static string AdminID()
